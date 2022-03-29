@@ -13,7 +13,10 @@ from dotenv import load_dotenv
 load_dotenv()
 CHAT_ID = os.getenv("BSC_CHAT_ID")
 TOKEN = os.getenv("BSC_TELEGRAM_API")
-bot = telebot.TeleBot(TOKEN)
+
+bot = telebot.TeleBot(__name__)
+bot.config['api_key'] = TOKEN
+
 LAST_NOTIFICATION = {
     "AXSBNB": {
         "gap": 0.005,
