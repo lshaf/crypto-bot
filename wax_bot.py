@@ -85,7 +85,7 @@ if __name__ == '__main__':
         try:
             time.sleep(1)
             cur_min = int(datetime.now().strftime("%M"))
-            if cur_min % 5 == 0 and LAST_RUN != cur_min:
+            if cur_min % 3 == 0 and LAST_RUN != cur_min:
                 LAST_RUN = cur_min
                 run_check()
 
