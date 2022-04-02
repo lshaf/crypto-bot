@@ -21,7 +21,7 @@ WATCHER_ID = {
     "TLM.WAX": {
         "icon": "🎓",
         "id": 26,
-        "gap": 0.02,
+        "gap": 0.01,
         "time": 0,
         "last_price": 0
     },
