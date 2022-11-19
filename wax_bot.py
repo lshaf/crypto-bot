@@ -126,7 +126,7 @@ def run_swap_price(pair, token):
 
     swap = "💹" * 6
     [name, wax] = pair.split(".")
-    message = f"{swap}\n{token['icon']*6} {pair} in swap\n\n" \
+    message = f"{swap}\n{token['icon']*6}\n{pair} in swap\n\n" \
               f"1 {name} = {pair_2:.5f} {wax}\n" \
               f"1 {wax} = {pair_1:.5f} {name}"
     bot.send_message(CHAT_ID, message)
