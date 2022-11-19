@@ -94,8 +94,8 @@ def run_market_price(pair, token):
 
     [name, wax] = pair.split(".")
     message = f"{token['icon']} {pair} in market\n\n" \
-              f"1 {name} = {current_price} {wax}\n" \
-              f"1 {wax} = {1/current_price} {name}"
+              f"1 {name} = {current_price:.5f} {wax}\n" \
+              f"1 {wax} = {1/current_price:.5f} {name}"
     bot.send_message(CHAT_ID, message)
     return True
 
@@ -123,8 +123,8 @@ def run_swap_price(pair, token):
 
     [name, wax] = pair.split(".")
     message = f"{token['icon']} {pair} in swap\n\n" \
-              f"1 {name} = {pair_2} {wax}\n" \
-              f"1 {wax} = {pair_1} {name}"
+              f"1 {name} = {pair_2:.5f} {wax}\n" \
+              f"1 {wax} = {pair_1:.5f} {name}"
     bot.send_message(CHAT_ID, message)
     return True
 
@@ -142,7 +142,7 @@ if __name__ == '__main__':
         try:
             time.sleep(1)
             cur_min = int(datetime.now().strftime("%M"))
-            if cur_min % 3 == 0 and LAST_RUN != cur_min:
+            if (cur_min % 3 == 0 and LAST_RUN != cur_min) or LAST_RUN == -1:
                 LAST_RUN = cur_min
                 run_check()
 
