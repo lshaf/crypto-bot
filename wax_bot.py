@@ -22,8 +22,9 @@ WATCHER_ID = {
         "icon": "🎓",
         "id": 26,
         "gap": 0.01,
-        "time": 0,
+        "time_price": 0,
         "last_price": 0,
+        "time_pair": 0,
         "last_pair": 0,
         "swap_id": 0
     },
@@ -31,8 +32,9 @@ WATCHER_ID = {
         "icon": "✨",
         "id": 19,
         "gap": 0.001,
-        "time": 0,
+        "time_price": 0,
         "last_price": 0,
+        "time_pair": 0,
         "last_pair": 0,
         "swap_id": 1
     },
@@ -86,14 +88,15 @@ def run_market_price(pair, token):
         return None
 
     current_price = data[0]['unit_price']
-    if not is_passed(token['time']) and not over_gap(current_price, pair):
+    if not is_passed(token['time_price']) and not over_gap(current_price, pair):
         return None
 
-    WATCHER_ID[pair]['time'] = current_time()
+    WATCHER_ID[pair]['time_price'] = current_time()
     WATCHER_ID[pair]['last_price'] = current_price
 
+    market = "📘" * 6
     [name, wax] = pair.split(".")
-    message = f"{token['icon']} {pair} in market\n\n" \
+    message = f"{market}\n{token['icon'] * 6}\n{pair} in market\n\n" \
               f"1 {name} = {current_price:.5f} {wax}\n" \
               f"1 {wax} = {1/current_price:.5f} {name}"
     bot.send_message(CHAT_ID, message)
@@ -115,14 +118,15 @@ def run_swap_price(pair, token):
     pool_2, _ = obj['pool2']['quantity'].split(" ")
     pair_1 = float(pool_1) / float(pool_2)  # in wax
     pair_2 = float(pool_2) / float(pool_1)  # in token
-    if not is_passed(token['time']) and not over_gap(pair_1, pair, 'last_pair'):
+    if not is_passed(token['time_pair']) and not over_gap(pair_1, pair, 'last_pair'):
         return None
 
-    WATCHER_ID[pair]['time'] = current_time()
+    WATCHER_ID[pair]['time_pair'] = current_time()
     WATCHER_ID[pair]['last_pair'] = pair_1
 
+    swap = "💹" * 6
     [name, wax] = pair.split(".")
-    message = f"{token['icon']} {pair} in swap\n\n" \
+    message = f"{swap}\n{token['icon']*6} {pair} in swap\n\n" \
               f"1 {name} = {pair_2:.5f} {wax}\n" \
               f"1 {wax} = {pair_1:.5f} {name}"
     bot.send_message(CHAT_ID, message)
