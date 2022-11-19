@@ -23,14 +23,18 @@ WATCHER_ID = {
         "id": 26,
         "gap": 0.01,
         "time": 0,
-        "last_price": 0
+        "last_price": 0,
+        "last_pair": 0,
+        "swap_id": 0
     },
     "DUST.WAX": {
         "icon": "✨",
         "id": 19,
         "gap": 0.001,
         "time": 0,
-        "last_price": 0
+        "last_price": 0,
+        "last_pair": 0,
+        "swap_id": 1
     },
 }
 
@@ -38,44 +42,97 @@ WATCHER_ID = {
 def current_time() -> float:
     return float(round(time.time() * 1000))
 
+
 def is_passed(last_time_notif) -> bool:
     gap_time = current_time() - last_time_notif
     return round(gap_time / 1000) >= 3600
 
-def over_gap(current: float, pair: str) -> bool:
-    last_value = WATCHER_ID[pair]['last_price']
+
+def over_gap(current: float, pair: str, meta='last_price') -> bool:
+    last_value = WATCHER_ID[pair][meta]
     value_gap = WATCHER_ID[pair]['gap']
     gap = current - last_value
     return math.fabs(gap) >= value_gap
+
 
 def get_deals(id):
     url = f"https://wax.alcor.exchange/api/markets/{id}/deals"
     return req.get(url, params={"limit": 10})
 
+
+def get_pairs(id):
+    url = "https://wax.blokcrafters.io/v1/chain/get_table_rows"
+    return req.post(url, json={
+        "json": True,
+        "code": "alcorammswap",
+        "scope": "alcorammswap",
+        "table": "pairs",
+        "index_position": 1,
+        "key_type": "",
+        "lower_bound": id,
+        "upper_bound": id,
+        "limit": 1
+    })
+
+
+def run_market_price(pair, token):
+    detail = get_deals(token['id'])
+    if detail.status_code != 200:
+        bot.send_message(CHAT_ID, f"FAIL to get market {pair}")
+        return None
+
+    data = detail.json()
+    if len(data) == 0:
+        return None
+
+    current_price = data[0]['unit_price']
+    if not is_passed(token['time']) and not over_gap(current_price, pair):
+        return None
+
+    WATCHER_ID[pair]['time'] = current_time()
+    WATCHER_ID[pair]['last_price'] = current_price
+
+    [name, wax] = pair.split(".")
+    message = f"{token['icon']} {pair} in market\n\n" \
+              f"1 {name} = {current_price} {wax}\n" \
+              f"1 {wax} = {1/current_price} {name}"
+    bot.send_message(CHAT_ID, message)
+    return True
+
+
+def run_swap_price(pair, token):
+    detail = get_pairs(token['swap_id'])
+    if detail.status_code != 200:
+        bot.send_message(CHAT_ID, f"FAIL to get pair {pair}")
+        return None
+
+    data = detail.json()
+    if len(data['rows']) == 0:
+        return None
+
+    obj = data['rows'][0]
+    pool_1, _ = obj['pool1']['quantity'].split(" ")
+    pool_2, _ = obj['pool2']['quantity'].split(" ")
+    pair_1 = float(pool_1) / float(pool_2)  # in wax
+    pair_2 = float(pool_2) / float(pool_1)  # in token
+    if not is_passed(token['time']) and not over_gap(pair_1, pair, 'last_pair'):
+        return None
+
+    WATCHER_ID[pair]['time'] = current_time()
+    WATCHER_ID[pair]['last_pair'] = pair_1
+
+    [name, wax] = pair.split(".")
+    message = f"{token['icon']} {pair} in swap\n\n" \
+              f"1 {name} = {pair_2} {wax}\n" \
+              f"1 {wax} = {pair_1} {name}"
+    bot.send_message(CHAT_ID, message)
+    return True
+
+
 def run_check():
     for [pair, token] in WATCHER_ID.items():
-        detail = get_deals(token['id'])
-        if detail.status_code != 200:
-            bot.send_message(CHAT_ID, f"FAIL to get pair {pair}")
-            continue
-        
-        data = detail.json()
-        if len(data) == 0:
-            continue
-
-        current_price = data[0]['unit_price']
-        if not is_passed(token['time']) and not over_gap(current_price, pair):
-            continue
-
-        WATCHER_ID[pair]['time'] = current_time()
-        WATCHER_ID[pair]['last_price'] = current_price
-
-        [name, wax] = pair.split(".")
-        message = f"{token['icon']} {pair}\n\n" \
-                  f"1 {name} = {current_price} {wax}\n" \
-                  f"1 {wax} = {1/current_price} {name}"
-        bot.send_message(CHAT_ID, message)
-
+        run_market_price(pair, token)
+        run_swap_price(pair, token)
 
 
 if __name__ == '__main__':
