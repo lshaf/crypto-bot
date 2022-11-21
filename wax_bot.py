@@ -122,12 +122,18 @@ def run_market_price(pair, token):
     if not is_passed(token['time_price']) and not over_gap(token_pair, pair):
         return None
 
+    movement_icon = "🟰"
+    if token_pair > WATCHER_ID[pair]['last_pair']:
+        movement_icon = "🔼"
+    elif token_pair < WATCHER_ID[pair]['last_pair']:
+        movement_icon = "🔽"
+
     WATCHER_ID[pair]['time_price'] = current_time()
     WATCHER_ID[pair]['last_price'] = token_pair
 
     market = "📘" * 6
     [name, wax] = pair.split(".")
-    message = f"{market}\n{token['icon'] * 6}\n{pair} in market\n\n" \
+    message = f"{market}\n{token['icon'] * 6}\n{movement_icon*6}\n{pair} in market\n\n" \
               f"1 {name} = {current_price:.5f} {wax}\n" \
               f"1 {wax} = {token_pair:.5f} {name}"
     bot.send_message(CHAT_ID, message)
