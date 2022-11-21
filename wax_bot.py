@@ -49,7 +49,7 @@ WATCHER_ID = {
         "last_pair": 0,
     },
     "ECR.WAX": {
-        "icon": "🪨",
+        "icon": "🌞",
         "id": 627,
         "swap_id": 2408,
         "gap": 0.0000005,
@@ -157,8 +157,8 @@ def run_swap_price(pair, token):
     swap = "💹" * 6
     [name, wax] = pair.split(".")
     message = f"{swap}\n{token['icon']*6}\n{pair} in swap\n\n" \
-              f"1 {name} = {pair_2:.5f} {wax}\n" \
-              f"1 {wax} = {pair_1:.5f} {name}"
+              f"1 {name} = {pair_1:.5f} {wax}\n" \
+              f"1 {wax} = {pair_2:.5f} {name}"
     bot.send_message(CHAT_ID, message)
     return True
 
