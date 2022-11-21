@@ -59,7 +59,7 @@ WATCHER_ID = {
         "last_pair": 0,
     },
     "XYTE.WAX": {
-        "icon": "🌌",
+        "icon": "🪐",
         "id": 142,
         "swap_id": 634,
         "gap": 0.0000005,
