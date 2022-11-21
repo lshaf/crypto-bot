@@ -38,6 +38,36 @@ WATCHER_ID = {
         "last_pair": 0,
         "swap_id": 1
     },
+    "LEEF.WAX": {
+        "icon": "🌿",
+        "id": 119,
+        "swap_id": 532,
+        "gap": 0.0000005,
+        "time_price": 0,
+        "last_price": 0,
+        "time_pair": 0,
+        "last_pair": 0,
+    },
+    "ECR.WAX": {
+        "icon": "🪨",
+        "id": 627,
+        "swap_id": 2408,
+        "gap": 0.0000005,
+        "time_price": 0,
+        "last_price": 0,
+        "time_pair": 0,
+        "last_pair": 0,
+    },
+    "XYTE.WAX": {
+        "icon": "🌌",
+        "id": 142,
+        "swap_id": 634,
+        "gap": 0.0000005,
+        "time_price": 0,
+        "last_price": 0,
+        "time_pair": 0,
+        "last_pair": 0,
+    },
 }
 
 
