@@ -21,7 +21,7 @@ WATCHER_ID = {
     "TLM.WAX": {
         "icon": "🎓",
         "id": 26,
-        "gap": 0.01,
+        "gap": 0.4,
         "time_price": 0,
         "last_price": 0,
         "time_pair": 0,
@@ -31,7 +31,7 @@ WATCHER_ID = {
     "DUST.WAX": {
         "icon": "✨",
         "id": 19,
-        "gap": 0.001,
+        "gap": 50,
         "time_price": 0,
         "last_price": 0,
         "time_pair": 0,
@@ -42,7 +42,7 @@ WATCHER_ID = {
         "icon": "🌿",
         "id": 119,
         "swap_id": 532,
-        "gap": 0.0000005,
+        "gap": 10000,
         "time_price": 0,
         "last_price": 0,
         "time_pair": 0,
@@ -52,7 +52,7 @@ WATCHER_ID = {
         "icon": "🌞",
         "id": 627,
         "swap_id": 2408,
-        "gap": 0.0000005,
+        "gap": 20000,
         "time_price": 0,
         "last_price": 0,
         "time_pair": 0,
@@ -62,7 +62,7 @@ WATCHER_ID = {
         "icon": "🪐",
         "id": 142,
         "swap_id": 634,
-        "gap": 0.0000005,
+        "gap": 100,
         "time_price": 0,
         "last_price": 0,
         "time_pair": 0,
@@ -118,17 +118,18 @@ def run_market_price(pair, token):
         return None
 
     current_price = data[0]['unit_price']
-    if not is_passed(token['time_price']) and not over_gap(current_price, pair):
+    token_pair = 1/current_price
+    if not is_passed(token['time_price']) and not over_gap(token_pair, pair):
         return None
 
     WATCHER_ID[pair]['time_price'] = current_time()
-    WATCHER_ID[pair]['last_price'] = current_price
+    WATCHER_ID[pair]['last_price'] = token_pair
 
     market = "📘" * 6
     [name, wax] = pair.split(".")
     message = f"{market}\n{token['icon'] * 6}\n{pair} in market\n\n" \
               f"1 {name} = {current_price:.5f} {wax}\n" \
-              f"1 {wax} = {1/current_price:.5f} {name}"
+              f"1 {wax} = {token_pair:.5f} {name}"
     bot.send_message(CHAT_ID, message)
     return True
 
@@ -148,15 +149,21 @@ def run_swap_price(pair, token):
     pool_2, _ = obj['pool2']['quantity'].split(" ")
     pair_1 = float(pool_1) / float(pool_2)  # in wax
     pair_2 = float(pool_2) / float(pool_1)  # in token
-    if not is_passed(token['time_pair']) and not over_gap(pair_1, pair, 'last_pair'):
+    if not is_passed(token['time_pair']) and not over_gap(pair_2, pair, 'last_pair'):
         return None
 
+    movement_icon = "🟰"
+    if pair_2 > WATCHER_ID[pair]['last_pair']:
+        movement_icon = "🔼"
+    elif pair_2 < WATCHER_ID[pair]['last_pair']:
+        movement_icon = "🔽"
+
     WATCHER_ID[pair]['time_pair'] = current_time()
-    WATCHER_ID[pair]['last_pair'] = pair_1
+    WATCHER_ID[pair]['last_pair'] = pair_2
 
     swap = "💹" * 6
     [name, wax] = pair.split(".")
-    message = f"{swap}\n{token['icon']*6}\n{pair} in swap\n\n" \
+    message = f"{swap}\n{token['icon']*6}\n{movement_icon*6}\n{pair} in swap\n\n" \
               f"1 {name} = {pair_1:.5f} {wax}\n" \
               f"1 {wax} = {pair_2:.5f} {name}"
     bot.send_message(CHAT_ID, message)
