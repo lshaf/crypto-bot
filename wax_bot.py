@@ -21,20 +21,16 @@ WATCHER_ID = {
     "TLM.WAX": {
         "icon": "🎓",
         "id": 26,
-        "gap": 0.4,
-        "time_price": 0,
+        "gap": 0.2,
         "last_price": 0,
-        "time_pair": 0,
         "last_pair": 0,
         "swap_id": 0
     },
     "DUST.WAX": {
         "icon": "✨",
         "id": 19,
-        "gap": 50,
-        "time_price": 0,
+        "gap": 10,
         "last_price": 0,
-        "time_pair": 0,
         "last_pair": 0,
         "swap_id": 1
     },
@@ -42,30 +38,24 @@ WATCHER_ID = {
         "icon": "🌿",
         "id": 119,
         "swap_id": 532,
-        "gap": 10000,
-        "time_price": 0,
+        "gap": 2000,
         "last_price": 0,
-        "time_pair": 0,
         "last_pair": 0,
     },
     "ECR.WAX": {
         "icon": "🌞",
         "id": 627,
         "swap_id": 2408,
-        "gap": 20000,
-        "time_price": 0,
+        "gap": 8000,
         "last_price": 0,
-        "time_pair": 0,
         "last_pair": 0,
     },
     "XYTE.WAX": {
         "icon": "🪐",
         "id": 142,
         "swap_id": 634,
-        "gap": 100,
-        "time_price": 0,
+        "gap": 20,
         "last_price": 0,
-        "time_pair": 0,
         "last_pair": 0,
     },
 }
@@ -107,6 +97,16 @@ def get_pairs(id):
     })
 
 
+def get_movement_icon(var_1, var_2):
+    movement_icon = "🟰"
+    if var_1 > var_2:
+        movement_icon = "🟥"
+    elif var_1 < var_2:
+        movement_icon = "🟩"
+
+    return movement_icon
+
+
 def run_market_price(pair, token):
     detail = get_deals(token['id'])
     if detail.status_code != 200:
@@ -119,21 +119,14 @@ def run_market_price(pair, token):
 
     current_price = data[0]['unit_price']
     token_pair = 1/current_price
-    if not is_passed(token['time_price']) and not over_gap(token_pair, pair):
+    if not over_gap(token_pair, pair):
         return None
 
-    movement_icon = "🟰"
-    if token_pair > WATCHER_ID[pair]['last_pair']:
-        movement_icon = "🔼"
-    elif token_pair < WATCHER_ID[pair]['last_pair']:
-        movement_icon = "🔽"
-
-    WATCHER_ID[pair]['time_price'] = current_time()
+    movement_icon = get_movement_icon(token_pair, WATCHER_ID[pair]['last_price'])
     WATCHER_ID[pair]['last_price'] = token_pair
 
-    market = "📘" * 6
     [name, wax] = pair.split(".")
-    message = f"{market}\n{token['icon'] * 6}\n{movement_icon*6}\n{pair} in market\n\n" \
+    message = f"📘{token['icon']}{movement_icon}\n{pair} in market\n\n" \
               f"1 {name} = {current_price:.5f} {wax}\n" \
               f"1 {wax} = {token_pair:.5f} {name}"
     bot.send_message(CHAT_ID, message)
@@ -155,21 +148,14 @@ def run_swap_price(pair, token):
     pool_2, _ = obj['pool2']['quantity'].split(" ")
     pair_1 = float(pool_1) / float(pool_2)  # in wax
     pair_2 = float(pool_2) / float(pool_1)  # in token
-    if not is_passed(token['time_pair']) and not over_gap(pair_2, pair, 'last_pair'):
+    if not over_gap(pair_2, pair, 'last_pair'):
         return None
 
-    movement_icon = "🟰"
-    if pair_2 > WATCHER_ID[pair]['last_pair']:
-        movement_icon = "🔼"
-    elif pair_2 < WATCHER_ID[pair]['last_pair']:
-        movement_icon = "🔽"
-
-    WATCHER_ID[pair]['time_pair'] = current_time()
+    movement_icon = get_movement_icon(pair_2, WATCHER_ID[pair]['last_pair'])
     WATCHER_ID[pair]['last_pair'] = pair_2
 
-    swap = "💹" * 6
     [name, wax] = pair.split(".")
-    message = f"{swap}\n{token['icon']*6}\n{movement_icon*6}\n{pair} in swap\n\n" \
+    message = f"💹{token['icon']}{movement_icon}\n{pair} in swap\n\n" \
               f"1 {name} = {pair_1:.5f} {wax}\n" \
               f"1 {wax} = {pair_2:.5f} {name}"
     bot.send_message(CHAT_ID, message)
