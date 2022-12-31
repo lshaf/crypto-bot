@@ -7,6 +7,7 @@ import traceback
 import requests as req
 from datetime import datetime
 from dotenv import load_dotenv
+from requests.exceptions import ConnectionError
 
 load_dotenv()
 CHAT_ID = os.getenv("WAX_CHAT_ID")
@@ -163,9 +164,13 @@ def run_swap_price(pair, token):
 
 
 def run_check():
-    for [pair, token] in WATCHER_ID.items():
-        run_market_price(pair, token)
-        run_swap_price(pair, token)
+    try:
+        for [pair, token] in WATCHER_ID.items():
+            run_market_price(pair, token)
+            run_swap_price(pair, token)
+    except ConnectionError:
+        bot.send_message(CHAT_ID, f"[Connection Error] Will try again")
+
 
 
 if __name__ == '__main__':
