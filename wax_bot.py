@@ -59,6 +59,14 @@ WATCHER_ID = {
         "last_price": 0,
         "last_pair": 0,
     },
+    "WOJAK.WAX": {
+        "icon": "🙍",
+        "id": 524,
+        "swap_id": 1993,
+        "gap": 10,
+        "last_price": 0,
+        "last_pair": 0,
+    },
 }
 
 
@@ -167,7 +175,9 @@ def run_check():
     try:
         for [pair, token] in WATCHER_ID.items():
             run_market_price(pair, token)
+            time.sleep(1)
             run_swap_price(pair, token)
+            time.sleep(1)
     except ConnectionError:
         bot.send_message(CHAT_ID, f"[Connection Error] Will try again")
 
