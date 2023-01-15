@@ -174,12 +174,12 @@ def run_swap_price(pair, token):
 def run_check():
     try:
         for [pair, token] in WATCHER_ID.items():
-            run_market_price(pair, token)
-            time.sleep(1)
+            # run_market_price(pair, token)
+            # time.sleep(1)
             run_swap_price(pair, token)
             time.sleep(1)
-    except ConnectionError:
-        bot.send_message(CHAT_ID, f"[Connection Error] Will try again")
+    except ConnectionError as e:
+        bot.send_message(CHAT_ID, f"[Connection Error] Will try again\n{e}")
 
 
 
