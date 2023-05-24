@@ -21,7 +21,6 @@ LAST_RUN = -1
 WATCHER_ID = {
     "TLM.WAX": {
         "icon": "🎓",
-        "id": 26,
         "gap": 0.2,
         "last_price": 0,
         "last_pair": 0,
@@ -29,7 +28,6 @@ WATCHER_ID = {
     },
     "DUST.WAX": {
         "icon": "✨",
-        "id": 19,
         "gap": 10,
         "last_price": 0,
         "last_pair": 0,
@@ -37,33 +35,22 @@ WATCHER_ID = {
     },
     "LEEF.WAX": {
         "icon": "🌿",
-        "id": 119,
-        "swap_id": 532,
+        "swap_id": 217,
         "gap": 2000,
-        "last_price": 0,
-        "last_pair": 0,
-    },
-    "ECR.WAX": {
-        "icon": "🌞",
-        "id": 627,
-        "swap_id": 2408,
-        "gap": 8000,
         "last_price": 0,
         "last_pair": 0,
     },
     "XYTE.WAX": {
         "icon": "🪐",
-        "id": 142,
-        "swap_id": 634,
+        "swap_id": 268,
         "gap": 20,
         "last_price": 0,
         "last_pair": 0,
     },
-    "WOJAK.WAX": {
-        "icon": "🙍",
-        "id": 524,
-        "swap_id": 1993,
-        "gap": 10,
+    "TACO.WAX": {
+        "icon": "🌮",
+        "swap_id": 163,
+        "gap": 0.2,
         "last_price": 0,
         "last_pair": 0,
     },
@@ -86,18 +73,13 @@ def over_gap(current: float, pair: str, meta='last_price') -> bool:
     return math.fabs(gap) >= value_gap
 
 
-def get_deals(id):
-    url = f"https://wax.alcor.exchange/api/markets/{id}/deals"
-    return req.get(url, params={"limit": 10})
-
-
 def get_pairs(id):
     url = "https://wax.blokcrafters.io/v1/chain/get_table_rows"
     return req.post(url, json={
         "json": True,
-        "code": "alcorammswap",
-        "scope": "alcorammswap",
-        "table": "pairs",
+        "code": "swap.alcor",
+        "scope": "swap.alcor",
+        "table": "pools",
         "index_position": 1,
         "key_type": "",
         "lower_bound": id,
@@ -116,32 +98,6 @@ def get_movement_icon(var_1, var_2):
     return movement_icon
 
 
-def run_market_price(pair, token):
-    detail = get_deals(token['id'])
-    if detail.status_code != 200:
-        bot.send_message(CHAT_ID, f"FAIL to get market {pair}")
-        return None
-
-    data = detail.json()
-    if len(data) == 0:
-        return None
-
-    current_price = data[0]['unit_price']
-    token_pair = 1/current_price
-    if not over_gap(token_pair, pair):
-        return None
-
-    movement_icon = get_movement_icon(token_pair, WATCHER_ID[pair]['last_price'])
-    WATCHER_ID[pair]['last_price'] = token_pair
-
-    [name, wax] = pair.split(".")
-    message = f"📘{token['icon']}{movement_icon}\n{pair} in market\n\n" \
-              f"1 {name} = {current_price:.5f} {wax}\n" \
-              f"1 {wax} = {token_pair:.5f} {name}"
-    bot.send_message(CHAT_ID, message)
-    return True
-
-
 def run_swap_price(pair, token):
     detail = get_pairs(token['swap_id'])
     if detail.status_code != 200:
@@ -153,10 +109,15 @@ def run_swap_price(pair, token):
         return None
 
     obj = data['rows'][0]
-    pool_1, _ = obj['pool1']['quantity'].split(" ")
-    pool_2, _ = obj['pool2']['quantity'].split(" ")
-    pair_1 = float(pool_1) / float(pool_2)  # in wax
-    pair_2 = float(pool_2) / float(pool_1)  # in token
+    pool_1, _token = obj['tokenA']['quantity'].split(" ")
+    pool_2, _ = obj['tokenB']['quantity'].split(" ")
+    if _token == "WAX":
+        pair_1 = float(pool_1) / float(pool_2)  # in wax
+        pair_2 = float(pool_2) / float(pool_1)  # in token
+    else:
+        pair_2 = float(pool_1) / float(pool_2)  # in wax
+        pair_1 = float(pool_2) / float(pool_1)  # in token
+
     if not over_gap(pair_2, pair, 'last_pair'):
         return None
 
@@ -174,8 +135,6 @@ def run_swap_price(pair, token):
 def run_check():
     try:
         for [pair, token] in WATCHER_ID.items():
-            # run_market_price(pair, token)
-            # time.sleep(1)
             run_swap_price(pair, token)
             time.sleep(1)
     except ConnectionError as e:
