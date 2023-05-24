@@ -49,7 +49,7 @@ WATCHER_ID = {
     },
     "TACO.WAX": {
         "icon": "🌮",
-        "swap_id": 163,
+        "swap_id": 162,
         "gap": 0.2,
         "last_price": 0,
         "last_pair": 0,
